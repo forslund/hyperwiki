@@ -12,12 +12,18 @@ from .exceptions import (
 from .util import cache, stdout_encode, debug
 import re
 
-API_URL = 'http://en.wikipedia.org/w/api.php'
+from hyper.contrib import HTTP20Adapter
+import hyper
+
+API_URL = 'https://en.wikipedia.org/w/api.php'
 RATE_LIMIT = False
 RATE_LIMIT_MIN_WAIT = None
 RATE_LIMIT_LAST_CALL = None
 USER_AGENT = 'wikipedia (https://github.com/goldsmith/Wikipedia/)'
 
+
+session = requests.session()
+session.mount(API_URL, HTTP20Adapter())
 
 def set_lang(prefix):
   '''
@@ -29,10 +35,14 @@ def set_lang(prefix):
   .. note:: Make sure you search for page titles in the language that you have set.
   '''
   global API_URL
-  API_URL = 'http://' + prefix.lower() + '.wikipedia.org/w/api.php'
+  API_URL = 'https://' + prefix.lower() + '.wikipedia.org/w/api.php'
 
   for cached_func in (search, suggest, summary):
     cached_func.clear_cache()
+
+  global session
+  session = requests.session()
+  session.mount(API_URL, HTTP20Adapter())
 
 
 def set_user_agent(user_agent_string):
@@ -386,7 +396,7 @@ class WikipediaPage(object):
       request = _wiki_request(query_params)
       html = request['query']['pages'][pageid]['revisions'][0]['*']
 
-      lis = BeautifulSoup(html, 'html.parser').find_all('li')
+      lis = BeautifulSoup(html).find_all('li')
       filtered_lis = [li for li in lis if not 'tocsection' in ''.join(li.get('class', []))]
       may_refer_to = [li.a.get_text() for li in filtered_lis if li.a]
 
@@ -734,7 +744,7 @@ def _wiki_request(params):
     wait_time = (RATE_LIMIT_LAST_CALL + RATE_LIMIT_MIN_WAIT) - datetime.now()
     time.sleep(int(wait_time.total_seconds()))
 
-  r = requests.get(API_URL, params=params, headers=headers)
+  r = session.get(API_URL, params=params, headers=headers)
 
   if RATE_LIMIT:
     RATE_LIMIT_LAST_CALL = datetime.now()

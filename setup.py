@@ -18,22 +18,22 @@ install_reqs = [
 
 version = re.search(
   "^__version__ = \((\d+), (\d+), (\d+)\)$",
-  local_file('wikipedia/__init__.py').read(),
+  local_file('hyperwiki/__init__.py').read(),
   re.MULTILINE
 ).groups()
 
 
 setuptools.setup(
-  name = "wikipedia",
+  name = "hyperwiki",
   version = '.'.join(version),
-  author = "Jonathan Goldsmith",
-  author_email = "jhghank@gmail.com",
-  description = "Wikipedia API for Python",
+  author = "Jonathan Goldsmith, Åke Forslund",
+  author_email = "ake.forslund@gmail.com",
+  description = "Wikipedia API over hyper for Python",
   license = "MIT",
   keywords = "python wikipedia API",
-  url = "https://github.com/goldsmith/Wikipedia",
+  url = "https://github.com/forslund/hyperwiki",
   install_requires = install_reqs,
-  packages = ['wikipedia'],
+  packages = ['hyperwiki'],
   long_description = local_file('README.rst').read(),
   classifiers = [
     'Development Status :: 4 - Beta',
